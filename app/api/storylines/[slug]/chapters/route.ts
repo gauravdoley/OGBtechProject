@@ -1,47 +1,37 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
 export async function GET(
   req: Request,
   { params }: { params: { slug: string } }
 ) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const supabase = await createSupabaseServerClient();
 
-  // 1. Get storyline ID
-  const { data: storyline, error: storylineError } =
-    await supabase
-      .from("storylines")
-      .select("id")
-      .eq("slug", params.slug)
-      .single();
+  const { data: storyline } = await supabase
+    .from("storylines")
+    .select("id")
+    .eq("slug", params.slug)
+    .single();
 
-  if (storylineError || !storyline) {
-    return NextResponse.json(
-      { error: "Storyline not found" },
-      { status: 404 }
-    );
+  if (!storyline) {
+    return NextResponse.json({ chapters: [] });
   }
 
-  // 2. Get chapters
   const { data: chapters, error } = await supabase
     .from("chapters")
-    .select(`
-      id,
-      chapter_number,
-      slug,
-      title,
-      reading_time_minutes,
-      points_reward
-    `)
+    .select("id, slug, title, chapter_number")
     .eq("storyline_id", storyline.id)
-    .order("chapter_number");
+    .order("chapter_number", { ascending: true });
 
   if (error) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(chapters);
+  return NextResponse.json({ chapters });
 }
