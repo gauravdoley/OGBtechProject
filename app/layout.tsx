@@ -8,6 +8,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
+          {/* Header */}
           <header className="flex justify-end items-center p-4 gap-4 h-16">
             <SignedOut>
               <SignInButton mode="modal" />
@@ -45,11 +47,22 @@ export default function RootLayout({
                 </button>
               </SignUpButton>
             </SignedOut>
+
             <SignedIn>
               <UserButton />
             </SignedIn>
           </header>
+
+          {/* App content */}
           {children}
+
+          {/* ✅ Toast notifications */}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 2500,
+            }}
+          />
         </body>
       </html>
     </ClerkProvider>

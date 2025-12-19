@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function CompleteButton({
   chapterId,
@@ -9,6 +11,7 @@ export default function CompleteButton({
   chapterId: string;
   isCompleted: boolean;
 }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState(isCompleted);
 
@@ -25,6 +28,21 @@ export default function CompleteButton({
 
     if (res.ok) {
       setCompleted(true);
+
+      // 🎉 Toast feedback
+      toast.success("Chapter completed!");
+
+      // 🔄 Re-fetch server data
+      router.refresh();
+
+      // 🔓 Small delay so unlock feels intentional
+      setTimeout(() => {
+        toast("Next chapter unlocked 🔓", {
+          icon: "🚀",
+        });
+      }, 600);
+    } else {
+      toast.error("Something went wrong");
     }
 
     setLoading(false);
@@ -34,12 +52,11 @@ export default function CompleteButton({
     <button
       onClick={markComplete}
       disabled={completed || loading}
-      className={`mt-8 px-6 py-3 rounded-lg font-semibold transition
-        ${
-          completed
-            ? "bg-green-600 text-white cursor-not-allowed"
-            : "bg-blue-600 text-white hover:bg-blue-700"
-        }`}
+      className={`mt-8 px-6 py-3 rounded-lg font-semibold transition ${
+        completed
+          ? "bg-green-600 text-white cursor-not-allowed"
+          : "bg-blue-600 text-white hover:bg-blue-700"
+      }`}
     >
       {completed
         ? "Completed ✔"
